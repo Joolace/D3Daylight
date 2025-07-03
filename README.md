@@ -32,12 +32,11 @@ A Windows desktop application built with Direct3D 11 and WinForms that previews 
 
 Place your map screenshots in the `screenshots/` folder using the exact names provided in the list:
 
-```
 screenshots/
 ├── Azarov's Resting Place.png
 ├── Blood Lodge.png
 ├── Dead Dawg Saloon.png
-└── ...
+└── etc.
 ```
 
 ## 🚀 How to Run
