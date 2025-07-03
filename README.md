@@ -1,4 +1,4 @@
-```markdown
+
 # D3Daylight
 
 A Windows desktop application built with Direct3D 11 and WinForms that previews **Dead by Daylight** map screenshots in real time using GPU acceleration. Fully compatible with **ReShade**.
@@ -32,6 +32,7 @@ A Windows desktop application built with Direct3D 11 and WinForms that previews 
 
 Place your map screenshots in the `screenshots/` folder using the exact names provided in the list:
 
+```bash
 screenshots/
 ├── Azarov's Resting Place.png
 ├── Blood Lodge.png
