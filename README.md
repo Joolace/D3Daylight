@@ -65,10 +65,8 @@ This creates a self-contained executable that runs without requiring .NET pre-in
 
 ## 🖼️ Screenshot
 
-You can include a screenshot of the application in action by adding a file to the `docs/` folder and linking it like this:
-
 ```markdown
-![Preview](docs/example.png)
+SOON
 ```
 
 ## 📘 License
