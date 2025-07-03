@@ -30,6 +30,8 @@ public class D3DRenderer : Form
     private int currentIndex;
     private ID3D11Texture2D texture;
     private bool readyToRender = false;
+    private Label infoLabel;
+    private System.Windows.Forms.Timer infoTimer;
 
     // Constructor — initializes form and stores the image path
     public D3DRenderer(string folderPath)
@@ -54,6 +56,40 @@ public class D3DRenderer : Form
         KeyPreview = true;
         KeyDown += OnKeyDown;
     }
+
+    private void ShowInfoMessage()
+    {
+        infoLabel = new Label
+        {
+            Text = "Use ← and → arrow keys to browse images",
+            AutoSize = true,
+            BackColor = System.Drawing.Color.FromArgb(160, 0, 0, 0),
+            ForeColor = System.Drawing.Color.White,
+            Font = new System.Drawing.Font("Segoe UI", 14, System.Drawing.FontStyle.Bold),
+            Padding = new Padding(10),
+            Parent = this,
+            Visible = true
+        };
+
+        // Position the label in the center of the window
+        infoLabel.Left = (ClientSize.Width - infoLabel.Width) / 2;
+        infoLabel.Top = 30; // Slightly from the top
+
+        Controls.Add(infoLabel);
+        infoLabel.BringToFront();
+
+        // Create timer to hide the label after 3 seconds
+        infoTimer = new System.Windows.Forms.Timer();
+        infoTimer.Interval = 3000; // 3 seconds
+        infoTimer.Tick += (s, e) =>
+        {
+            infoLabel.Visible = false;
+            infoTimer.Stop();
+            infoTimer.Dispose();
+        };
+        infoTimer.Start();
+    }
+
 
     private void OnKeyDown(object sender, KeyEventArgs e)
     {
@@ -175,6 +211,7 @@ public class D3DRenderer : Form
 
         readyToRender = true; // Rendering is now allowed (after setup is fully complete)
         System.Windows.Forms.Application.Idle += RenderLoop; // Start rendering when app is idle
+        ShowInfoMessage();
     }
 
 
