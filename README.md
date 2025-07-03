@@ -79,4 +79,3 @@ This project is licensed under the [MIT License](LICENSE).
 
 - [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
 - [SharpGenTools](https://github.com/mellinoe/SharpGenTools)
-```
