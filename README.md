@@ -34,9 +34,9 @@ Place your map screenshots in the `screenshots/` folder using the exact names pr
 
 ```bash
 screenshots/
-├── Azarov's Resting Place.png
-├── Blood Lodge.png
-├── Dead Dawg Saloon.png
+├── Azarov's Resting Place
+├── Blood Lodge
+├── Dead Dawg Saloon
 └── etc.
 ```
 
