@@ -9,25 +9,11 @@ public class FormMenu : Form
     private Button startButton;
     private string selectedMap;
 
-    private List<string> maps = new()
-    {
-        "Azarov's Resting Place", "Badham Preschool", "Blood Lodge", "Coal Tower",
-        "Dead Dawg Saloon", "Disturbed Ward", "Eyrie of Crows", "Family Residence",
-        "Father Campbell's Chapel", "Forgotten Ruins", "Fractured Cowshed",
-        "Freddy Fazbear's Pizza", "Garden of Joy", "Gas Heaven", "Greenville Square",
-        "Grim Pantry", "Groaning Storehouse", "Ironworks of Misery", "Lampkin Lane",
-        "Midwich Elementary School", "Mother's Dwelling", "Mount Ormond Resort",
-        "Nostromo Wreckage", "Raccoon City Police Station", "Raccoon City Police Station East Wing",
-        "Raccoon City Police Station West Wing", "Rancid Abattoir", "Rotten Fields",
-        "Sanctum of Wrath", "Shelter Woods", "Suffocation Pit", "The Game",
-        "The Pale Rose", "The Shattered Square", "The Temple of Purgation",
-        "The Thompson House", "The Underground Complex", "Toba Landing",
-        "Torment Creek", "Treatment Theatre", "Wreckers' Yard", "Wretched Shop"
-    };
+    private List<string> realms;
 
     public FormMenu()
     {
-        Text = "Select a map";
+        Text = "Select a realm";
         Width = 400;
         Height = 600;
         StartPosition = FormStartPosition.CenterScreen;
@@ -36,7 +22,14 @@ public class FormMenu : Form
         {
             Dock = DockStyle.Fill
         };
-        mapList.Items.AddRange(maps.ToArray());
+
+        realms = new List<string>(Directory.GetDirectories("screenshots"));
+        for (int i = 0; i < realms.Count; i++)
+        {
+            realms[i] = Path.GetFileName(realms[i]); // solo il nome della cartella
+        }
+
+        mapList.Items.AddRange(realms.ToArray());
         mapList.SelectedIndexChanged += (s, e) =>
         {
             selectedMap = mapList.SelectedItem.ToString();
@@ -50,20 +43,21 @@ public class FormMenu : Form
             Height = 40,
             Enabled = false
         };
+
         startButton.Click += (s, e) =>
         {
             if (!string.IsNullOrEmpty(selectedMap))
             {
-                var imagePath = Path.Combine("screenshots", selectedMap + ".png");
-                if (File.Exists(imagePath))
+                var folderPath = Path.Combine("screenshots", selectedMap);
+                if (Directory.Exists(folderPath))
                 {
                     Hide();
-                    new D3DRenderer(imagePath).ShowDialog();
+                    new D3DRenderer(folderPath).ShowDialog();
                     Show();
                 }
                 else
                 {
-                    MessageBox.Show($"Screenshot not found for {selectedMap}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Folder not found: {folderPath}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         };

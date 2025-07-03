@@ -26,24 +26,53 @@ public class D3DRenderer : Form
     private ID3D11PixelShader pixelShader;
     private ID3D11InputLayout inputLayout;
     private ID3D11Buffer vertexBuffer;
+    private List<string> imagePaths;
+    private int currentIndex;
+    private ID3D11Texture2D texture;
+    private bool readyToRender = false;
 
     // Constructor — initializes form and stores the image path
-    public D3DRenderer(string imagePath)
+    public D3DRenderer(string folderPath)
     {
-        _imagePath = imagePath;
-        Text = Path.GetFileNameWithoutExtension(imagePath);
+        imagePaths = new List<string>(Directory.GetFiles(folderPath, "*.png"));
+        currentIndex = 0;
+
+        if (imagePaths.Count == 0)
+        {
+            MessageBox.Show("No images found in selected folder.");
+            Close();
+            return;
+        }
+
+        _imagePath = imagePaths[currentIndex];
+
+        Text = Path.GetFileName(folderPath);
         Width = 1920;
         Height = 1080;
         StartPosition = FormStartPosition.CenterScreen;
-        Shown += OnShown; // Register event handler to initialize rendering after window is shown
+        Shown += OnShown;
+        KeyPreview = true;
+        KeyDown += OnKeyDown;
+    }
+
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Right)
+        {
+            currentIndex = (currentIndex + 1) % imagePaths.Count;
+            ReloadTexture();
+        }
+        else if (e.KeyCode == Keys.Left)
+        {
+            currentIndex = (currentIndex - 1 + imagePaths.Count) % imagePaths.Count;
+            ReloadTexture();
+        }
     }
 
     // Loads a PNG/JPG image into a Direct3D texture and sets up the sampler
-    private void LoadImageTexture()
+    private System.Drawing.Size LoadImageTexture()
     {
         using var bitmap = new System.Drawing.Bitmap(_imagePath);
-
-        // Loads a PNG/JPG image into a Direct3D texture and sets up the sampler
         bitmap.RotateFlip(System.Drawing.RotateFlipType.RotateNoneFlipY);
 
         var data = bitmap.LockBits(
@@ -59,16 +88,16 @@ public class D3DRenderer : Form
             ArraySize = 1,
             Format = Format.B8G8R8A8_UNorm,
             SampleDescription = new SampleDescription(1, 0),
-            Usage = ResourceUsage.Immutable,
+            Usage = ResourceUsage.Default,
             BindFlags = BindFlags.ShaderResource,
         };
 
         var dataBox = new SubresourceData(data.Scan0, (uint)data.Stride, 0);
-        using var texture = device.CreateTexture2D(textureDesc, new[] { dataBox });
+        texture?.Dispose();
+        texture = device.CreateTexture2D(textureDesc, new[] { dataBox });
         textureView = device.CreateShaderResourceView(texture);
         bitmap.UnlockBits(data);
 
-        // Create sampler to sample the texture
         sampler = device.CreateSamplerState(new SamplerDescription
         {
             Filter = Filter.MinMagMipLinear,
@@ -76,7 +105,43 @@ public class D3DRenderer : Form
             AddressV = TextureAddressMode.Wrap,
             AddressW = TextureAddressMode.Wrap
         });
+
+        return bitmap.Size; // Returns the image size (width x height) to be used for resolution calculations
     }
+
+    private void ReloadTexture()
+    {
+        _imagePath = imagePaths[currentIndex];
+        textureView?.Dispose();
+        sampler?.Dispose();
+        texture?.Dispose();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        LoadImageTexture();
+
+        // Updates the constant buffer with the new image and screen resolution
+        using var bitmap = new System.Drawing.Bitmap(_imagePath);
+        float imageWidth = bitmap.Width;
+        float imageHeight = bitmap.Height;
+        float screenWidth = ClientSize.Width;
+        float screenHeight = ClientSize.Height;
+
+        var resolutionData = new Vector4(imageWidth, imageHeight, screenWidth, screenHeight);
+        context.UpdateSubresource(ref resolutionData, resolutionBuffer);
+        context.VSSetConstantBuffer(0, resolutionBuffer);
+
+
+        // Binds the new shader resource view and sampler state to the pixel shader (critical step)
+        context.PSSetShaderResource(0, textureView);
+        context.PSSetSampler(0, sampler);
+        context.Flush(); // Forces the immediate use of newly bound resources (prevents black screen)
+
+
+        Invalidate(); // Forces a window repaint to trigger rendering
+    }
+
 
     // Called when the window is shown — sets up D3D device, swapchain, backbuffer and resources
     private void OnShown(object sender, EventArgs e)
@@ -106,9 +171,12 @@ public class D3DRenderer : Form
         SetupShaders();
         SetupQuad();
 
-        context.RSSetViewport(0, 0, ClientSize.Width, ClientSize.Height); // Set full-screen viewport
+        context.RSSetViewport(0, 0, ClientSize.Width, ClientSize.Height); // Sets the viewport to cover the full client window
+
+        readyToRender = true; // Rendering is now allowed (after setup is fully complete)
         System.Windows.Forms.Application.Idle += RenderLoop; // Start rendering when app is idle
     }
+
 
     private ID3D11Buffer resolutionBuffer;
 
@@ -169,7 +237,7 @@ float4 PSMain(float4 position : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TA
         File.WriteAllText(vsPath, vsCode);
         File.WriteAllText(psPath, psCode);
 
-        // Compila
+        // Compiles vertex and pixel shaders from source code
         var vsBytecode = Compiler.CompileFromFile(vsPath, "VSMain", "vs_4_0");
         var psBytecode = Compiler.CompileFromFile(psPath, "PSMain", "ps_4_0");
 
@@ -215,7 +283,7 @@ float4 PSMain(float4 position : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TA
         }
 
 
-        // Cleaning temporary files
+        // Deletes temporary shader files after compilation
         File.Delete(vsPath);
         File.Delete(psPath);
 
@@ -257,8 +325,14 @@ float4 PSMain(float4 position : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TA
     // Main render loop — clears screen and draws textured quad
     private void RenderLoop(object sender, EventArgs e)
     {
+        if (!readyToRender)
+            return;
+
+        if (textureView == null || sampler == null)
+            return;
+
         context.OMSetRenderTargets(rtv);
-        context.ClearRenderTargetView(rtv, new Color4(0.1f, 0.1f, 0.1f, 1.0f)); // Clear to dark gray
+        context.ClearRenderTargetView(rtv, new Color4(0.1f, 0.1f, 0.1f, 1.0f));
 
         context.IASetInputLayout(inputLayout);
         context.IASetPrimitiveTopology(PrimitiveTopology.TriangleStrip);
@@ -270,6 +344,7 @@ float4 PSMain(float4 position : SV_POSITION, float2 texcoord : TEXCOORD) : SV_TA
         context.PSSetSampler(0, sampler);
 
         context.Draw(4, 0);
-        swapChain.Present(1, PresentFlags.None); // Display the frame
+        swapChain.Present(1, PresentFlags.None);
     }
+
 }
