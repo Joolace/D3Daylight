@@ -16,7 +16,7 @@ A Windows desktop application built with Direct3D 11 and WinForms that previews 
 ### Runtime
 
 - **Operating System**: Windows 10 or 11 (x64)
-- **.NET Runtime**: [.NET 6.0 or newer](https://dotnet.microsoft.com/download/dotnet/6.0)
+- **.NET Runtime**: [.NET 8.0 or newer](https://dotnet.microsoft.com/download/dotnet/8.0)
 - **DirectX**: Direct3D 11-compatible GPU and drivers
 - **VC++ Redistributable**: [2015–2022 x64](https://aka.ms/vs/17/release/vc_redist.x64.exe)
 
