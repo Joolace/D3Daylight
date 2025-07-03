@@ -71,7 +71,7 @@ SOON
 
 ## 📘 License
 
-This project is licensed under the [GPL-3.0 license](LICENSE).
+This project is licensed under the [GPL-3.0 license](https://github.com/Joolace/D3Daylight/tree/master?tab=GPL-3.0-1-ov-file).
 
 ## 🙏 Credits
 
