@@ -23,7 +23,7 @@ A Windows desktop application built with Direct3D 11 and WinForms that previews 
 ### Development (Optional)
 
 - Visual Studio 2022 or later
-- .NET SDK 6+
+- .NET SDK 8+
 - NuGet packages:
   - `Vortice.Windows`
   - `SharpGen.Runtime`
