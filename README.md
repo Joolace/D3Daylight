@@ -45,7 +45,7 @@ screenshots/
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/D3Daylight.git
+   git clone https://github.com/Joolace/D3Daylight.git
    cd D3Daylight
    ```
 
