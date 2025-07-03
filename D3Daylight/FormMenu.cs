@@ -23,11 +23,23 @@ public class FormMenu : Form
             Dock = DockStyle.Fill
         };
 
-        realms = new List<string>(Directory.GetDirectories("screenshots"));
+        // Build full path to the screenshots folder (relative to executable path)
+        string screenshotsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "screenshots");
+
+        // Check if it exists — if not, show error
+        if (!Directory.Exists(screenshotsFolder))
+        {
+            MessageBox.Show($"The 'screenshots' folder was not found at:\n{screenshotsFolder}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Environment.Exit(1);
+        }
+
+        // Load subfolders as realm names
+        realms = new List<string>(Directory.GetDirectories(screenshotsFolder));
         for (int i = 0; i < realms.Count; i++)
         {
-            realms[i] = Path.GetFileName(realms[i]); // solo il nome della cartella
+            realms[i] = Path.GetFileName(realms[i]); // Extract just the folder name
         }
+
 
         mapList.Items.AddRange(realms.ToArray());
         mapList.SelectedIndexChanged += (s, e) =>
@@ -48,7 +60,7 @@ public class FormMenu : Form
         {
             if (!string.IsNullOrEmpty(selectedMap))
             {
-                var folderPath = Path.Combine("screenshots", selectedMap);
+                var folderPath = Path.Combine(screenshotsFolder, selectedMap);
                 if (Directory.Exists(folderPath))
                 {
                     Hide();
