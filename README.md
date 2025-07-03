@@ -77,4 +77,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 - [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
 - [SharpGenTools](https://github.com/SharpGenTools/SharpGenTools)
-- [ReSahde](https://github.com/crosire/reshade)
+- [ReShade](https://github.com/crosire/reshade)
